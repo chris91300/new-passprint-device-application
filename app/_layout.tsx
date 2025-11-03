@@ -1,32 +1,19 @@
-import { install } from 'react-native-quick-crypto';
-
-
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { passprintService } from '@/preparation/sdk/backend/PassprintUtils';
-import { useEffect, useState } from 'react';
+import VerifyIdentity from '@/components/views/verifyIdentity';
+import Welcome from '@/components/views/Welcome';
+import useIsFirstTime from '@/hooks/is-this-the-first-time';
+import { Image } from 'expo-image';
+import { StyleSheet } from 'react-native';
 import * as Keychain from 'react-native-keychain';
+import { install } from 'react-native-quick-crypto';
+
 install();
+
 export default function HomeScreen() {
-console.log("on affiche layout")
-  const [isTheFirstTime, setIsTheFirstTime] = useState<undefined | boolean>(undefined);
 
-
-  useEffect(()=>{
-    const doesUserAlreadyExiste = async () =>{
-      const alreadyExist = await passprintService.areKeysAlreadyExisting();
-      setIsTheFirstTime(alreadyExist);
-    } 
-    doesUserAlreadyExiste();
-  
- 
-  }, [])
-  
- 
+  const { isFirstTime } = useIsFirstTime();
 
   return (
     <ParallaxScrollView
@@ -39,11 +26,11 @@ console.log("on affiche layout")
       }>
       <ThemedView style={styles.titleContainer}>
         {
-          isTheFirstTime === undefined ?
-          <ThemedText type="title">Vérification de votre identité</ThemedText>
+          isFirstTime === undefined ?
+            <VerifyIdentity/>
           :
-          isTheFirstTime ?
-          <ThemedText type="title">C'est la première fois que vous utilisez l'application</ThemedText>
+          isFirstTime === true ?
+          <Welcome/>
           :
           <ThemedText type="title">Vous avez déjà utilisé l'application</ThemedText>
 
