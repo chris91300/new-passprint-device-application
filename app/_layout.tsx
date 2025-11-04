@@ -1,8 +1,8 @@
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import Welcome from '@/components/views/firstTime/Welcome';
 import VerifyIdentity from '@/components/views/verifyIdentity';
-import Welcome from '@/components/views/Welcome';
 import useIsFirstTime from '@/hooks/is-this-the-first-time';
 import { Image } from 'expo-image';
 import { StyleSheet } from 'react-native';
@@ -17,14 +17,18 @@ export default function HomeScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#121542', dark: '#1D3D47' }}      
       headerImage={
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
+          source={require('@/assets/images/logo.png')}
           style={styles.reactLogo}
         />
       }>
       <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">PASSPRINT</ThemedText>   
+      </ThemedView>
+
+      <ThemedView style={styles.informationsContainer}>
         {
           isFirstTime === undefined ?
             <VerifyIdentity/>
@@ -34,10 +38,7 @@ export default function HomeScreen() {
           :
           <ThemedText type="title">Vous avez déjà utilisé l'application</ThemedText>
 
-        }
-        
-           
-              
+        }      
       </ThemedView>
       
     </ParallaxScrollView>
@@ -45,21 +46,27 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  
   titleContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
+  informationsContainer: {
+    flex: 1,
+    height: 300
+  },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
+    height: 200,
+    width: 150,
     bottom: 0,
-    left: 0,
+    left: "50%",
+    transform: [{ translateX: '-50%' }],
     position: 'absolute',
   },
 });
