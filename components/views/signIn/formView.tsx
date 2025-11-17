@@ -1,17 +1,23 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import PassprintService from "@/preparation/sdk/backend/PassprintForDevice";
+import { useUser } from "@/store/store";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, TextInput } from 'react-native-paper';
+import { ActivityIndicator, Button, MD2Colors, TextInput } from 'react-native-paper';
 import * as z from "zod";
 
 const pseudoRegex = /^[a-zA-Z0-9._-]{3,24}$/;
 
 function FormSignIn(){
 
-    const [pseudo, setPseudo] = useState('');
+    const { device, setPseudo, setInformations, biometryIsAvailable, requestPassword, hidePasswordModal } = useUser();
+    const [pseudoUser, setPseudoUser] = useState('');
     const [email, setEmail] = useState('');
     const [ error, setError ] = useState("");
+    const [ pending, setPending ] = useState(false);
+
+
 
     const checkValues = () => {
         z
@@ -21,13 +27,39 @@ function FormSignIn(){
         .regex(pseudoRegex, {
             message: 'Le pseudo ne peut contenir que des lettres, chiffres, tirets, tirets du bas ou points.',
         })
-        .parse(pseudo);
+        .parse(pseudoUser);
         z.email().parse(email);
     }
 
-    const submit = () => {
+    const submit = async () => {
         try{
+            setPending(true);
             checkValues();
+            setPseudo(pseudoUser);
+            setInformations({email});
+            if(biometryIsAvailable){
+                await PassprintService.getCredentialsWithBiometrie();
+            }else{
+                //  ON DEMANDE LE PASSWORD VIA MODAL modal à faire !!!!!!!!!!!!!!!!!
+                console.log("ON DEMANDE LA MODAL PASSWORD")
+                const success = await requestPassword();
+                hidePasswordModal();
+                if(success){
+                    const response = await PassprintService.signUpUser(pseudoUser, email, device);
+                    console.log("response reçu de passprint server api")
+                    console.log(response);
+                    if(response.success){
+                        // on doit rediriger vers la page welcome
+                    }
+                    else{
+                        setError(response.message)
+                    }
+                }else{
+                        setError("password invalide.")
+                    }
+            }
+            
+            // aficher demande pour remplir autres informations maintenant ou plus tard
         }catch(err){
             console.log(err);
             if(err instanceof z.ZodError){
@@ -41,6 +73,8 @@ function FormSignIn(){
                 setError("Une erreur est survenue");
             }
             
+        }finally{
+            setPending(false);
         }
     }
 
@@ -57,8 +91,8 @@ function FormSignIn(){
                 <View>
                     <TextInput
                         label="Pseudo"
-                        value={pseudo}
-                        onChangeText={text => setPseudo(text)}
+                        value={pseudoUser}
+                        onChangeText={text => setPseudoUser(text)}
                         onFocus={resetError}
                     />
                     <ThemedText style={styles.informations}>
@@ -79,7 +113,10 @@ function FormSignIn(){
                     style={styles.button}
                     onPress={submit}
                 >
-                    Valider
+                    { pending ?
+                            <ActivityIndicator animating={true} color={MD2Colors.red800} />
+                        :
+                            'valider' }
                 </Button>
 
                 <ThemedText style={styles.error}>{error}</ThemedText>

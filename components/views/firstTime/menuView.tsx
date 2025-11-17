@@ -33,6 +33,7 @@ function Menu({changeView}: Props) {
         >
             Je veux créer un compte
         </Button>
+        
         <Button
             mode="outlined"
             onPress={alreadyHaveAccount}
