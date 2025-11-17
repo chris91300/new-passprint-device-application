@@ -1,4 +1,5 @@
-import { passprintService } from '@/preparation/sdk/backend/PassprintUtils';
+
+import PassprintService from "@/preparation/sdk/backend/PassprintForDevice";
 import { useEffect, useState } from "react";
 
 
@@ -8,14 +9,14 @@ function useIsFirstTime() {
 
   useEffect(()=>{
     const doesUserAlreadyExiste = async () =>{
-      const credentialsExist = await passprintService.areKeysAlreadyExisting();
+      const credentialsExist = await PassprintService.areKeysAlreadyExisting();
       const isTheFirstTime = !credentialsExist;
       setIsTheFirstTime(isTheFirstTime);
     } 
     doesUserAlreadyExiste();
   
  
-  }, [])
+  }, [setIsTheFirstTime])
 
   return {
     isFirstTime

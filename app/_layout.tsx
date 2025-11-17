@@ -1,50 +1,54 @@
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import Welcome from '@/components/views/firstTime/Welcome';
-import VerifyIdentity from '@/components/views/verifyIdentity';
-import useIsFirstTime from '@/hooks/is-this-the-first-time';
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-import * as Keychain from 'react-native-keychain';
+import useAuth from '@/hooks/useAuth';
+import useSplashScreen from '@/hooks/useSplashScreen';
+import PassprintService from '@/preparation/sdk/backend/PassprintForDevice';
+import { useUser } from '@/store/store';
+import { Slot, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { install } from 'react-native-quick-crypto';
+import AuthentificationWithPasswordModal from './AuthentificationWithPasswordModal';
 
 install();
 
-export default function HomeScreen() {
 
-  const { isFirstTime } = useIsFirstTime();
+
+export default function RootLayout() {
+
+  const router = useRouter();
+  const { setPseudo, setTypeOfAuthentification } = useUser();
+  const { authentificationInProgress, newUserForThisDevice, userIsAuthenticated } = useAuth();
+  useSplashScreen(authentificationInProgress);
+
+  useEffect(()=>{
+    newUserForThisDevice && router.replace('/(auth)/welcome')
+    if( userIsAuthenticated ){
+      const getData = async () => {
+        const data = await PassprintService.getPseudoAndTypeOfAuthentification();
+        if(data){
+          const { username, password: typeOfAuthentification } = data as {username: string, password: 'biometrie' | 'password'};
+          if(typeOfAuthentification !== 'biometrie' && typeOfAuthentification !== 'password') {
+            throw new Error("Type of authentification invalide");
+          }
+          setPseudo(username);
+          setTypeOfAuthentification(typeOfAuthentification);
+          router.replace('/(app)/dashboard');
+        }
+      }
+        
+      getData();
+      
+    }
+
+  }, [newUserForThisDevice, userIsAuthenticated, , setPseudo, setTypeOfAuthentification, router]);
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#121542', dark: '#1D3D47' }}      
-      headerImage={
-        <Image
-          source={require('@/assets/images/logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">PASSPRINT</ThemedText>   
-      </ThemedView>
-
-      <ThemedView style={styles.informationsContainer}>
-        {
-          isFirstTime === undefined ?
-            <VerifyIdentity/>
-          :
-          isFirstTime === true ?
-          <Welcome/>
-          :
-          <ThemedText type="title">Vous avez déjà utilisé l'application</ThemedText>
-
-        }      
-      </ThemedView>
+    <>
+    <Slot/>
+    <AuthentificationWithPasswordModal/>
+    </>
       
-    </ParallaxScrollView>
-  );
+  )
 }
-
+/*
 const styles = StyleSheet.create({
   
   titleContainer: {
@@ -70,10 +74,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
+*/
 
 
-
-
+/*
 const KEYCHAIN_SERVICE = 'com.passprint.cryptokeys';
 
 export const getStoredSecretsSecured = async () => {
@@ -101,7 +105,7 @@ export const getStoredSecretsSecured = async () => {
         return null;
     }
 };
-
+*/
 
 
 

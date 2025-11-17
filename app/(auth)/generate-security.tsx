@@ -1,36 +1,36 @@
+
+import AuthContainer from "@/components/authcontainer";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import useGenerateSecurity from "@/hooks/useGenerateSecurity";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, MD2Colors } from 'react-native-paper';
-import { StateSignInView } from "../firstTime/signInView";
-import BiometrieNotAvailable from "./BiometrieNotAvailable";
 
-type Props = {
-    changeSignInView: (view: StateSignInView) => void
-}
 
-function SecurityView({ changeSignInView }: Props){
+function GenerateSecurityScreen(){
 
-    
+    const router = useRouter();
     const { secure } = useGenerateSecurity();
    
    
 
-    useEffect(()=>{
-        const displayForm = () => {
-            changeSignInView("form");
-        }
+    useEffect(()=>{       
 
-        if( secure === true ){
-            
-            displayForm();
+        if( secure !== "pending" && secure === true ){
+            router.push("/sign-in-form")
+           // on redirige vers la page de formulaire
         }
-    }, [secure, changeSignInView])
+        if( secure !== "pending" && secure === false ){
+            router.push("/password-form")
+           // on redirige vers la page de formulaire
+        }
+    }, [secure, router])
     
 
     return (
-        <ThemedView>
+        <AuthContainer>
+            <ThemedView>
             {
                 secure === "pending" && (
                     <>
@@ -41,17 +41,12 @@ function SecurityView({ changeSignInView }: Props){
                     </>
                     
                 )
-            }
-            {
-                !secure && <BiometrieNotAvailable changeSignInView={changeSignInView}/>
-            }
-                
-            
-            
+            }            
         </ThemedView>
+        </AuthContainer>
     )
 }
 
 
 
-export default SecurityView
+export default GenerateSecurityScreen
